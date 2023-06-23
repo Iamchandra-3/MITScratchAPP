@@ -1,20 +1,28 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import MainScreen from './components/editorscreen';
+import Todo from './components/actionscreen';
+import React from 'react';
+import { useState } from 'react';
+const Stack = createNativeStackNavigator();
+// const InitialState = { action1Items: [], action2Items: [] };
 
-export default function App() {
+export const ActionContext = React.createContext();
+function App() {
+  const [action1Items, setAction1Items] = useState([]);
+  const [action2Items, setAction2Items] = useState([]);
+  const [addedImages, setAddedImages] = useState([]);
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <ActionContext.Provider value={{ action1Items, action2Items, setAction1Items, setAction2Items , addedImages,setAddedImages}}>
+    <NavigationContainer>
+      <Stack.Navigator>
+         <Stack.Screen name="Scratch" component={MainScreen} />
+         <Stack.Screen name="Act" action1Items={action1Items} component={Todo} />
+
+      </Stack.Navigator>
+    </NavigationContainer>
+    </ActionContext.Provider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
