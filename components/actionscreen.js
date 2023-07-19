@@ -12,7 +12,7 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { ActionContext } from '../App';
 
 const Todo = () => {
@@ -38,8 +38,8 @@ const Todo = () => {
 
   const handleRelease = (item) => {
     return (_, gesture) => {
-      if (gesture.moveY > 200) {
-        if (gesture.moveY < 300) {
+      // if (gesture.moveX > 500) {
+        if (gesture.moveY < 500) {
           setAction1Items((prevItems) => [...prevItems, item.text]);
           setDroppedItems((prevItems) => [...prevItems, item.text]);
           setDroppedItemsArray((prevArray) => [...prevArray, item.text]);
@@ -48,7 +48,7 @@ const Todo = () => {
           setDroppedItems((prevItems) => [...prevItems, item.text]);
           setDroppedItemsArray((prevArray) => [...prevArray, item.text]);
         }
-      }
+      // }
 
       item.pan.setValue({ x: 0, y: 0 });
     };
@@ -95,6 +95,7 @@ const Todo = () => {
     
     // navigation.navigate('Scratch'); // Navigate to EditorScreen
     navigation.navigate('Scratch',{data1:action1Items,data2:action2Items})
+    // navigation.pop();
   };
 
   const renderDragItems = () => {
@@ -148,27 +149,51 @@ const Todo = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    // flex: 2,
+    alignItems: 'stretch',
+    // backgroundColor :'blue',
     flexDirection: 'row',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   leftContainer: {
+    // backgroundColor:'blue',
     flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
+    // backgroundColor:'blue',
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
   rightContainer: {
+    // backgroundColor:'blue',
     flex: 1,
+    // height: '50%',
+    // width: '50%',
+    flexDirection: "column"
   },
   actionContainer: {
-    flex: 1,
+    // flex: 1,
+    height: '50%',
+    width: '50%',
+    // backgroundColor:'blue',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 50,
+    // paddingBottom: 50,
+    // height:'50%'
   },
+   actionContainer1: {
+    // flex: 1,
+    height: '50%',
+    width: '50%',
+    backgroundColor:'red',
+    alignItems: 'center',
+    justifyContent: 'center',
+    // paddingBottom: 50,
+    // height:'50%'
+  },
+
+   
   dragItem: {
     width: 150,
     height: 60,
