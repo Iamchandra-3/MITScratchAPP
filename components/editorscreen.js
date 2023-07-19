@@ -1,99 +1,83 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, PanResponder, Animated, Dimensions, Button } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  PanResponder,
+  Animated,
+  Dimensions,
+  Button,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { AntDesign, Feather, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { ActionContext } from '../App';
 
-
-const MainScreen = () => {
+const MainScreen = ({ route }) => {
   const [image, setImage] = useState(null);
-  const { addedImages, setAddedImages } = React.useContext(ActionContext);
+  const [addedImages, setAddedImages] = useState([]); // Manage addedImages directly in this component
   const imageRefs = useRef([]);
   const [coordinates, setCoordinates] = useState({ x: 0, y: 0 });
   const [showActionScreen, setShowActionScreen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const navigation = useNavigation();
 
-    const PlayAction = () => {
+  useEffect(() => {
+    const data1 = route?.params?.data1 || [];
+    const data2 = route?.params?.data2 || [];
+    const items = [...data1, ...data2];
+    const newAddedImages = items.map((item) => ({
+      id: Date.now().toString() + Math.random(), // Append a random number to ensure uniqueness
+      uri: null,
+      spriteName: item,
+      position: new Animated.ValueXY(),
+    }));
+    setAddedImages(newAddedImages);
+  }, [route?.params?.data1, route?.params?.data2]);
+
+  const PlayAction = (items) => {
     console.log('PlayAction');
     addedImages.forEach((image) => {
       if (!image) {
         return;
       }
-      Animated.timing(image.position, { toValue: { x: 100, y: 100 }, useNativeDriver: false }).start();
-      Animated.timing(image.position, { toValue: { x: 50, y: 50 }, useNativeDriver: false }).start();
-    });
+      // Reset the image position before performing actions
+      image.position.setValue({ x: 0, y: 0 });
 
-    addedImages.forEach((item) => {
-      const { id, text, pan } = item;
-
-      switch (id) {
-        case 1:
+      // Perform actions for each image
+      items.forEach((item) => {
+        if (item === 'MoveXby50') {
           // Move X by 50
-          Animated.timing(pan, { toValue: { x: pan.x._value + 50, y: pan.y._value }, useNativeDriver: false }).start();
-          break;
-        case 2:
+          Animated.timing(image.position, {
+            toValue: { x: image.position.x._value + 50, y: image.position.y._value },
+            useNativeDriver: false,
+          }).start();
+        } else if (item === 'MoveYby50') {
           // Move Y by 50
-          Animated.timing(pan, { toValue: { x: pan.x._value, y: pan.y._value + 50 }, useNativeDriver: false }).start();
-          break;
-        case 3:
+          Animated.timing(image.position, {
+            toValue: { x: image.position.x._value, y: image.position.y._value + 50 },
+            useNativeDriver: false,
+          }).start();
+        } else if (item === 'Rotate360') {
           // Rotate 360
-          Animated.timing(pan, { toValue: { x: pan.x._value, y: pan.y._value }, useNativeDriver: false }).start();
-          break;
-        case 4:
-          // go to (0,0)
-          Animated.timing(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
-          break;
-        case 5:
+          // Implement your rotation logic here
+        } else if (item === 'goto(0,0)') {
+          // Go to (0,0)
+          Animated.timing(image.position, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
+        } else if (item === 'MoveX=50,Y=50') {
           // Move X=50, Y=50
-          Animated.timing(pan, { toValue: { x: 50, y: 50 }, useNativeDriver: false }).start();
-          break;
-        case 6:
-          // go to random position
+          Animated.timing(image.position, { toValue: { x: 50, y: 50 }, useNativeDriver: false }).start();
+        } else if (item === 'gotorandomposition') {
+          // Go to random position
           const randomX = Math.floor(Math.random() * (Dimensions.get('window').width - 100));
           const randomY = Math.floor(Math.random() * (Dimensions.get('window').height / 2 - 100));
-          Animated.timing(pan, { toValue: { x: randomX, y: randomY }, useNativeDriver: false }).start();
-          break;
-        case 7:
-          // Say Hello
-          <Text> Hello </Text>;
-          break;
-        case 8:
-          // Say Hello 1 Sec
-          setTimeout(() => {
-            <Text> Hello </Text>;
-          }, 1000);
-          break;
-        case 9:
-          // Increase size
-          Animated.timing(pan, { toValue: { x: pan.x._value, y: pan.y._value }, useNativeDriver: false }).start(() => {
-            pan.setValue({ x: pan.x._value, y: pan.y._value, width: pan.width._value + 50, height: pan.height._value + 50 });
-          });
-          break;
-        case 10:
-          // Decrease size
-          Animated.timing(pan, { toValue: { x: pan.x._value, y: pan.y._value }, useNativeDriver: false }).start(() => {
-            pan.setValue({ x: pan.x._value, y: pan.y._value, width: pan.width._value - 50, height: pan.height._value - 50 });
-          });
-          break;
-        case 11:
-          // Remove the image
-          Animated.timing(pan, { toValue: { x: pan.x._value, y: pan.y._value }, useNativeDriver: false }).start(() => {
-            const index = addedImages.findIndex((img) => img && img.id === item.imageId);
-            if (index !== -1) {
-              const newAddedImages = [...addedImages];
-              newAddedImages.splice(index, 1);
-              setAddedImages(newAddedImages);
-            }
-          });
-          break;
-        default:
-          break;
-      }
+          Animated.timing(image.position, { toValue: { x: randomX, y: randomY }, useNativeDriver: false }).start();
+        }
+      });
     });
   };
-
 
   const handleImageUpload = async (spriteName) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -109,9 +93,9 @@ const MainScreen = () => {
       quality: 1,
     });
 
-    if (!result.canceled) {
+    if (!result.cancelled) {
       const newImage = {
-        id: Date.now().toString(),
+        id: Date.now().toString() + Math.random(), // Append a random number to ensure uniqueness
         uri: result.uri,
         spriteName: spriteName,
         position: new Animated.ValueXY(),
@@ -177,21 +161,33 @@ const MainScreen = () => {
 
   const renderAddedImages = () => {
     return addedImages.map((image, index) => {
-      const panResponder = createPanResponder(image);
-      imageRefs.current[index] = panResponder;
+      if (image) {
+        const panResponder = createPanResponder(image);
+        imageRefs.current[index] = panResponder;
 
-      return (
-        <View key={image.id}>
-          <Animated.Image
-            source={{ uri: image.uri }}
-            style={[styles.addedImage, { transform: image.position.getTranslateTransform() }]}
-            {...panResponder.panHandlers}
-          />
-          <TouchableOpacity style={[styles.deleteButton, { transform: image.position.getTranslateTransform() }]} onPress={() => handleRemoveImage(image.id)}>
-            <Feather name="x" size={16} color="white" />
-          </TouchableOpacity>
-        </View>
-      );
+        return (
+          <View key={image.id}>
+            <Animated.Image
+              source={{ uri: image.uri }}
+              style={[
+                styles.addedImage,
+                { transform: [...image.position.getTranslateTransform()] },
+              ]}
+              {...panResponder.panHandlers}
+            />
+            <TouchableOpacity
+              style={[
+                styles.deleteButton,
+                { transform: [...image.position.getTranslateTransform()] },
+              ]}
+              onPress={() => handleRemoveImage(image.id)}
+            >
+              <Feather name="x" size={16} color="white" />
+            </TouchableOpacity>
+          </View>
+        );
+      }
+      return null;
     });
   };
 
@@ -205,7 +201,7 @@ const MainScreen = () => {
         <View style={styles.playground}>
           {renderAddedImages()}
         </View>
-        <TouchableOpacity style={styles.runButton} onPress={PlayAction}>
+        <TouchableOpacity style={styles.runButton} onPress={() => PlayAction([...route?.params?.data1, ...route?.params?.data2])}>
           <AntDesign name="play" size={24} color="white" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.resetButton} onPress={handleResetPlayground}>

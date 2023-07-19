@@ -1,6 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button } from 'react-native';
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -13,33 +12,41 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { ActionContext } from '../App';
 
-const Todo = (props) => {
+const Todo = () => {
   const { action1Items, action2Items, setAction1Items, setAction2Items } = React.useContext(ActionContext);
   const [dragItems, setDragItems] = useState([
-    { id: 1, text: 'Move X by 50', pan: new Animated.ValueXY() },
-    { id: 2, text: 'Move Y by 50', pan: new Animated.ValueXY() },
-    { id: 3, text: 'Rotate 360', pan: new Animated.ValueXY() },
-    { id: 4, text: 'go to (0,0)', pan: new Animated.ValueXY() },
-    { id: 5, text: 'Move X=50, Y=50', pan: new Animated.ValueXY() },
-    { id: 6, text: 'go to random position', pan: new Animated.ValueXY() },
-    { id: 7, text: 'Say Hello', pan: new Animated.ValueXY() },
-    { id: 8, text: 'Say Hello 1 Sec', pan: new Animated.ValueXY() },
-    { id: 9, text: 'Increase size', pan: new Animated.ValueXY() },
-    { id: 10, text: 'Decrease size', pan: new Animated.ValueXY() },
+    { id: 1, text: 'MoveXby50', pan: new Animated.ValueXY() },
+    { id: 2, text: 'MoveYby50', pan: new Animated.ValueXY() },
+    { id: 3, text: 'Rotate360', pan: new Animated.ValueXY() },
+    { id: 4, text: 'goto(0,0)', pan: new Animated.ValueXY() },
+    { id: 5, text: 'MoveX=50,Y=50', pan: new Animated.ValueXY() },
+    { id: 6, text: 'gotorandomposition', pan: new Animated.ValueXY() },
+    { id: 7, text: 'SayHello', pan: new Animated.ValueXY() },
+    { id: 8, text: 'SayHello1Sec', pan: new Animated.ValueXY() },
+    { id: 9, text: 'Increasesize', pan: new Animated.ValueXY() },
+    { id: 10, text: 'Decreasesize', pan: new Animated.ValueXY() },
     { id: 11, text: 'Repeat', pan: new Animated.ValueXY() },
   ]);
 
   const [droppedItems, setDroppedItems] = useState([]);
+  const [droppedItemsArray, setDroppedItemsArray] = useState([]); // Array to store dropped items
+
+  const navigation = useNavigation();
 
   const handleRelease = (item) => {
     return (_, gesture) => {
       if (gesture.moveY > 200) {
         if (gesture.moveY < 300) {
-          setAction1Items((prevItems) => [...prevItems, { ...item, id: Date.now() }]);
+          setAction1Items((prevItems) => [...prevItems, item.text]);
+          setDroppedItems((prevItems) => [...prevItems, item.text]);
+          setDroppedItemsArray((prevArray) => [...prevArray, item.text]);
         } else {
-          setAction2Items((prevItems) => [...prevItems, { ...item, id: Date.now() }]);
+          setAction2Items((prevItems) => [...prevItems, item.text]);
+          setDroppedItems((prevItems) => [...prevItems, item.text]);
+          setDroppedItemsArray((prevArray) => [...prevArray, item.text]);
         }
       }
 
@@ -50,12 +57,13 @@ const Todo = (props) => {
   const handleDelete = (item, actionType) => {
     return () => {
       if (actionType === 'action1') {
-        const updatedAction1Items = action1Items.filter((actionItem) => actionItem.id !== item.id);
+        const updatedAction1Items = action1Items.filter((actionItem) => actionItem !== item);
         setAction1Items(updatedAction1Items);
       } else if (actionType === 'action2') {
-        const updatedAction2Items = action2Items.filter((actionItem) => actionItem.id !== item.id);
+        const updatedAction2Items = action2Items.filter((actionItem) => actionItem !== item);
         setAction2Items(updatedAction2Items);
       }
+      setDroppedItemsArray((prevArray) => prevArray.filter((droppedItem) => droppedItem !== item));
     };
   };
 
@@ -78,6 +86,17 @@ const Todo = (props) => {
     setDragItems(updatedDragItems);
   }, []);
 
+  const handlePrintArray = (actionType) => {
+    if (actionType === 'action1') {
+      console.log(action1Items);
+    } else if (actionType === 'action2') {
+      console.log(action2Items);
+    }
+    
+    // navigation.navigate('Scratch'); // Navigate to EditorScreen
+    navigation.navigate('Scratch',{data1:action1Items,data2:action2Items})
+  };
+
   const renderDragItems = () => {
     return dragItems.map((item) => (
       <Animated.View
@@ -92,16 +111,12 @@ const Todo = (props) => {
 
   const renderDroppedItems = (items, actionType) => {
     return items.map((item) => (
-      <TouchableOpacity key={item.id} onPress={handleDelete(item, actionType)}>
+      <TouchableOpacity key={item} onPress={handleDelete(item, actionType)}>
         <View style={styles.droppedItem}>
-          <Text>{item.text}</Text>
+          <Text>{item}</Text>
         </View>
       </TouchableOpacity>
     ));
-  };
-
-  const handleAddAction = () => {
-    navigation.navigate('Scratch');
   };
 
   return (
@@ -113,11 +128,17 @@ const Todo = (props) => {
         <View style={styles.actionContainer}>
           <Text style={styles.title}>Action 1</Text>
           {renderDroppedItems(action1Items, 'action1')}
+          <TouchableOpacity style={styles.printButton} onPress={() => handlePrintArray('action1')}>
+            <Text style={styles.printButtonText}>Done </Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.line} />
         <View style={styles.actionContainer}>
           <Text style={styles.title}>Action 2</Text>
           {renderDroppedItems(action2Items, 'action2')}
+          <TouchableOpacity style={styles.printButton} onPress={() => handlePrintArray('action2')}>
+            <Text style={styles.printButtonText}>Done</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
       <StatusBar style="auto" />
@@ -146,7 +167,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 50, // Added paddingBottom to avoid overlap with bottom content
+    paddingBottom: 50,
   },
   dragItem: {
     width: 150,
@@ -174,6 +195,19 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: 'black',
     marginVertical: 10,
+  },
+  printButton: {
+    width: '80%',
+    backgroundColor: 'blue',
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  printButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 
